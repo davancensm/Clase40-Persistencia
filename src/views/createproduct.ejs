@@ -1,0 +1,44 @@
+<div class="formulate">
+    <h1>Welcome to the ship factory</h1>
+    <form id="formis">
+        <label>Name:</label>
+        <input type="text" name="name">
+        <label>Model:</label>
+        <input type="text" name="model">
+        <label>Faction:</label>
+        <input type="text" name="faction">
+        <label>Imagen en URL:</label>
+        <input name="img">
+        <input type="submit" value="Enviar">
+    </form>
+</div>
+<ul id="views"></ul>
+<%- include("./history/p_history",{files:files}) %>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/ejs@3.1.6/ejs.min.js"></script>
+    <script>
+        const socket = io()
+        let formP = document.getElementById("formis");
+        formP.addEventListener("submit", (e) => {
+            e.preventDefault();
+            let data = new FormData(formP);
+            let sendObj = {};
+            data.forEach((val, key) => (sendObj[key] = val))
+            socket.emit("sendProducts", sendObj)
+            formP.reset();
+        });
+
+        socket.on("productLog", (data) => {
+            let products = data.payload
+            let productsViews = document.getElementById("views");
+            fetch("history/p_history.ejs").then((response) => {
+                return response.text();
+            }).then(template => {
+                const processe = ejs.compile(template);
+                const html = processe({
+                    products
+                })
+                productsViews.innerHTML = html
+            })
+        })
+    </script>
